@@ -1,0 +1,37 @@
+{
+  "name": "lifecycle-markets",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Binary prediction markets on newly launched tokens - DEVNET DEMO",
+  "workspaces": [
+    "sdk",
+    "resolver",
+    "scripts",
+    "web"
+  ],
+  "scripts": {
+    "build": "npm run build -w sdk",
+    "typecheck": "npm run typecheck --workspaces --if-present",
+    "test": "npm run test --workspaces --if-present",
+    "sync-idl": "bash scripts/sync-idl.sh",
+    "keys": "tsx scripts/keys.ts",
+    "create-collateral": "tsx scripts/create-collateral.ts",
+    "faucet": "tsx scripts/faucet.ts",
+    "faucet-server": "tsx scripts/faucet-server.ts",
+    "seed": "tsx scripts/seed-markets.ts",
+    "scenario": "tsx scripts/scenario.ts",
+    "resolver": "tsx resolver/src/main.ts",
+    "e2e-local": "bash scripts/e2e-local.sh",
+    "deploy:devnet": "RPC_URL=${RPC_URL:-https://api.devnet.solana.com} bash scripts/deploy.sh",
+    "web": "npm run dev -w web",
+    "web:build": "npm run build -w web"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "devDependencies": {
+    "tsx": "^4",
+    "typescript": "5.9.3",
+    "@types/node": "^22"
+  }
+}

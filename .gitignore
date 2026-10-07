@@ -10,3 +10,9 @@ keys/
 dist/
 data/
 *.sqlite
+.localnet-ledger/
+.e2e/
+deployments/localnet.json
+.devlocal/
+web/.env.local
+web/dist/

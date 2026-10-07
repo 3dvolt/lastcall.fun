@@ -1,0 +1,51 @@
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
+import { Link, NavLink } from "react-router-dom";
+import { config } from "../config";
+import { useCollateralBalance, useHealth } from "../hooks/queries";
+import { requestFaucet } from "../lib/api";
+import { formatUnits } from "../lib/format";
+import { friendlyError } from "../lib/errors";
+import { useToast } from "./Toasts";
+import { useQueryClient } from "@tanstack/react-query";
+import { useState } from "react";
+
+export function Header() {
+  const { publicKey } = useWallet();
+  const balance = useCollateralBalance(publicKey).data;
+  const health = useHealth();
+  const toast = useToast();
+  const qc = useQueryClient();
+  const [busy, setBusy] = useState(false);
+
+  const faucet = async () => {
+    if (!publicKey) return;
+    setBusy(true);
+    try { await requestFaucet(publicKey.toBase58()); toast.success("Test tokens sent"); await qc.invalidateQueries({ queryKey: ["balance"] }); }
+    catch (e) { toast.error(friendlyError(e)); } finally { setBusy(false); }
+  };
+
+  return (
+    <>
+      <div className="banner" role="note">
+        <b>{config.cluster === "devnet" ? "DEVNET DEMO" : "LOCAL DEMO"}</b> · test tokens only, no real value. Never send real funds.
+        {health.isError && <span className="warn-text"> · Resolver service unreachable</span>}
+      </div>
+      <header className="header">
+        <Link to="/" className="brand"><span className="logo" aria-hidden>↗</span> Lifecycle Markets</Link>
+        <nav>
+          <NavLink to="/" end>Markets</NavLink>
+          <NavLink to="/create">Create</NavLink>
+        </nav>
+        <div className="grow" />
+        {publicKey && (
+          <div className="bal" title="Test token balance">
+            {balance === undefined ? "…" : formatUnits(balance, 2)} <small>test</small>
+            {config.faucetApi && <button className="btn ghost sm" onClick={faucet} disabled={busy}>{busy ? "…" : "Get test tokens"}</button>}
+          </div>
+        )}
+        <WalletMultiButton />
+      </header>
+    </>
+  );
+}
