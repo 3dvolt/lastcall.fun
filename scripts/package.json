@@ -1,0 +1,22 @@
+{
+  "name": "@lifecycle-markets/scripts",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@lifecycle-markets/sdk": "0.1.0",
+    "@lifecycle-markets/resolver": "0.1.0",
+    "@anchor-lang/core": "1.2.1",
+    "@solana/spl-token": "0.4.15",
+    "@solana/web3.js": "1.99.0",
+    "dotenv": "^17"
+  },
+  "devDependencies": {
+    "@types/node": "^22",
+    "tsx": "^4",
+    "typescript": "5.9.3"
+  }
+}

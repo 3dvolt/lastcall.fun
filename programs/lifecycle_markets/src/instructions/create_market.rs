@@ -20,6 +20,7 @@ pub struct CreateMarket<'info> {
         bump
     )]
     pub market: Account<'info, Market>,
+    #[account(constraint = collateral_mint.freeze_authority.is_none() @ MarketError::InvalidCollateralMint)]
     pub collateral_mint: Account<'info, Mint>,
     #[account(
         init,
@@ -57,10 +58,7 @@ pub fn handler(
     require!(expiry_ts > now, MarketError::InvalidExpiry);
     require!(threshold > 0, MarketError::InvalidParameter);
     require!(resolution_window_secs > 0, MarketError::InvalidParameter);
-    require!(
-        i64::from(resolution_window_secs) <= expiry_ts.saturating_sub(now).saturating_add(86_400 * 30),
-        MarketError::InvalidParameter
-    );
+    require!(resolution_window_secs <= MAX_WINDOW_SECS, MarketError::InvalidParameter);
     require!(initial_liquidity > 0, MarketError::ZeroAmount);
     require!(initial_liquidity <= MAX_RESERVE / 4, MarketError::ReserveTooLarge);
     require!(fee_bps <= MAX_FEE_BPS, MarketError::FeeTooHigh);

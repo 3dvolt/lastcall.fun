@@ -11,3 +11,6 @@ pub const FEED_SEED: &[u8] = b"feed";
 
 /// Max trading fee: 10%.
 pub const MAX_FEE_BPS: u16 = 1_000;
+
+/// Max resolver sampling window: 7 days.
+pub const MAX_WINDOW_SECS: u32 = 7 * 24 * 3600;

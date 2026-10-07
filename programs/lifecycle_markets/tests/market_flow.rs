@@ -221,3 +221,15 @@ fn demo_feed_authority() {
     let feed = lifecycle_markets::DemoFeed::try_deserialize(&mut &acc.data[..]).unwrap();
     assert_eq!((feed.price, feed.authority), (6_000, auth.pubkey()));
 }
+
+#[test]
+fn collateral_with_freeze_authority_rejected() {
+    use litesvm_token::CreateMint;
+    let mut env = Env::new();
+    let freezable = CreateMint::new(&mut env.svm, &env.admin).decimals(6).freeze_authority(&env.admin.pubkey()).send().unwrap();
+    let real = env.mint;
+    env.mint = freezable;
+    let creator = env.new_user(1_000 * ONE);
+    assert_market_err(env.create_market(&creator, 9, THRESHOLD, T0 + 600, 100 * ONE, 0), MarketError::InvalidCollateralMint);
+    env.mint = real;
+}

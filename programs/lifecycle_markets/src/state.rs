@@ -76,7 +76,7 @@ pub struct DemoFeed {
     pub token_ref: Pubkey,
     /// USD price, 6 decimals.
     pub price: u64,
-    /// Circulating supply in raw token units (see CONTRACT.md for decimals convention).
+    /// Circulating supply in WHOLE tokens (decimals already applied). market_cap_usd6 = price * circulating_supply.
     pub circulating_supply: u64,
     /// USD liquidity, 6 decimals.
     pub liquidity_usd: u64,

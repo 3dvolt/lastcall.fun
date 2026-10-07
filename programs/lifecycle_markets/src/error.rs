@@ -40,10 +40,10 @@ pub enum MarketError {
     AlreadyClaimed,
     #[msg("Not enough shares")]
     InsufficientShares,
-    #[msg("Invalid resolution outcome")]
-    InvalidOutcome,
     #[msg("Account does not match market")]
     AccountMismatch,
+    #[msg("Collateral mint must not have a freeze authority")]
+    InvalidCollateralMint,
 }
 
 impl From<crate::math::MathError> for MarketError {
