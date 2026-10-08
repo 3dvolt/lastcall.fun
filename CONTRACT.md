@@ -1,4 +1,4 @@
-# CONTRACT.md — interface for the frontend team
+# CONTRACT.md — Last Call: interface for the frontend team
 
 > **DEVNET ONLY. DEMO.** Collateral is a test SPL token minted by us. The resolver is a single centralized key and the price
 > feed is a mock written by a single demo authority (see "Centralized / mocked parts"). Version: `0.1.0` (M3 — on-chain

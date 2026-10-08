@@ -1,6 +1,7 @@
 import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Link, NavLink } from "react-router-dom";
+import { Logo } from "./Logo";
 import { config } from "../config";
 import { useCollateralBalance, useHealth } from "../hooks/queries";
 import { requestFaucet } from "../lib/api";
@@ -32,7 +33,7 @@ export function Header() {
         {health.isError && <span className="warn-text"> · Resolver service unreachable</span>}
       </div>
       <header className="header">
-        <Link to="/" className="brand"><span className="logo" aria-hidden>↗</span> Lifecycle Markets</Link>
+        <Link to="/" className="brand"><Logo size={32} /> <span className="wordmark">Last <b>Call</b></span></Link>
         <nav>
           <NavLink to="/" end>Markets</NavLink>
           <NavLink to="/create">Create</NavLink>

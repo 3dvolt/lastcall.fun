@@ -29,7 +29,7 @@ export function App() {
           <Route path="*" element={<main className="page"><p>Page not found.</p></main>} />
         </Routes>
       </Guard>
-      <footer className="footer muted small">Devnet demo · centralized resolver and mock price feed · not financial advice</footer>
+      <footer className="footer muted small">Last Call · last-call.fun · devnet demo · centralized resolver and mock price feed · not financial advice</footer>
     </>
   );
 }

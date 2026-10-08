@@ -1,4 +1,6 @@
-# Lifecycle Markets — prediction markets on newly launched tokens (DEVNET DEMO)
+# Last Call — prediction markets on newly launched tokens (DEVNET DEMO)
+
+*last-call.fun · "Will this new token still be standing when the bell rings?"*
 
 Binary YES/NO markets such as *"Will token T have a market cap ≥ $1,000,000 at expiry?"*, built on Solana (Anchor).
 The betting AMM is standard; the differentiator is the **resolution rule**, which is designed to resist the pump-for-a-few-seconds

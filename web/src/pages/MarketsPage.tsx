@@ -18,7 +18,7 @@ export function MarketsPage() {
   return (
     <main className="page">
       <div className="page-head">
-        <div><h1>Will it make it?</h1><p className="muted">Bet YES or NO on whether a newly launched token holds its market cap. Resolution ignores last-second pumps.</p></div>
+        <div><h1>Last call.</h1><p className="muted">Will this new token still be standing when the bell rings? Bet YES or NO on its market cap at expiry. Only what holds through the final window counts: last-second pumps don't.</p></div>
         <div className="tabs small">{(["live", "resolved", "all"] as const).map((f) => (<button key={f} className={filter === f ? "tab active" : "tab"} onClick={() => setFilter(f)}>{f[0].toUpperCase() + f.slice(1)}</button>))}</div>
       </div>
       {isLoading && <div className="grid">{[0, 1, 2].map((i) => <div key={i} className="card skeleton" />)}</div>}
