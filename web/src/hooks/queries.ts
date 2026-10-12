@@ -16,7 +16,7 @@ import { config } from "../config";
  */
 export const isTrusted = (m: MarketAccount): boolean =>
   (!config.collateralMint || m.collateralMint.equals(config.collateralMint)) &&
-  (m.sourceKind === "pumpSwap" || (m.sourceKind === "demoFeed" && config.allowDemoFeed));
+  m.sourceKind === "pumpSwap";
 
 export const useMarkets = () => {
   const { client } = useClient();

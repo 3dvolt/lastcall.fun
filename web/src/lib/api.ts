@@ -1,15 +1,3 @@
-import { config } from "../config";
-
-/** Test-token faucet (devnet / local only). Mainnet has none. */
-export async function requestFaucet(wallet: string): Promise<void> {
-  if (!config.faucetApi) throw new Error("Faucet is not configured.");
-  const res = await fetch(`${config.faucetApi}/faucet`, {
-    method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ wallet }), credentials: "omit", referrerPolicy: "no-referrer",
-  });
-  const body = await res.json().catch(() => ({}));
-  if (!res.ok) throw new Error(body?.error ?? `faucet error ${res.status}`);
-}
-
 /** Display-only token name/symbol from DexScreener (never used for any decision). Null on any problem. */
 export async function fetchTokenLabel(mint: string): Promise<{ symbol: string; name: string } | null> {
   try {

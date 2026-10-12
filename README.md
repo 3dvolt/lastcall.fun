@@ -1,4 +1,4 @@
-<p align="center"><img src="docs/assets/logo.svg" width="96" alt="Last Call logo"></p>
+<p align="center"><img src="docs/assets/logo.png" width="96" alt="Last Call logo"></p>
 
 <h1 align="center">Last Call</h1>
 <p align="center"><b>Prediction markets on newly launched tokens, resolved by the smart contract itself.</b><br>

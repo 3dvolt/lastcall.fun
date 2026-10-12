@@ -5,26 +5,11 @@ import { Logo } from "./Logo";
 import { NetworkSelect } from "./NetworkSelect";
 import { config } from "../config";
 import { useCollateralBalance } from "../hooks/queries";
-import { requestFaucet } from "../lib/api";
 import { formatUnits } from "../lib/format";
-import { friendlyError } from "../lib/errors";
-import { useToast } from "./Toasts";
-import { useQueryClient } from "@tanstack/react-query";
-import { useState } from "react";
 
 export function Header() {
   const { publicKey } = useWallet();
   const balance = useCollateralBalance(publicKey).data;
-  const toast = useToast();
-  const qc = useQueryClient();
-  const [busy, setBusy] = useState(false);
-
-  const faucet = async () => {
-    if (!publicKey) return;
-    setBusy(true);
-    try { await requestFaucet(publicKey.toBase58()); toast.success("Test tokens sent"); await qc.invalidateQueries({ queryKey: ["balance"] }); }
-    catch (e) { toast.error(friendlyError(e)); } finally { setBusy(false); }
-  };
 
   return (
     <>
@@ -38,9 +23,8 @@ export function Header() {
         <div className="grow" />
         <NetworkSelect />
         {publicKey && (
-          <div className="bal" title="Test token balance">
-            {balance === undefined ? "…" : formatUnits(balance, 2)} <small>test</small>
-            {config.faucetApi && <button className="btn ghost sm" onClick={faucet} disabled={busy}>{busy ? "…" : "Get test tokens"}</button>}
+          <div className="bal" title="Collateral balance">
+            {balance === undefined ? "…" : formatUnits(balance, 2)}
           </div>
         )}
         <WalletMultiButton />

@@ -3,7 +3,7 @@ import { Keypair } from "@solana/web3.js";
 import { copyFileSync, existsSync } from "node:fs";
 import { keysDir, readKeypair, writeKeypair } from "./common.js";
 
-const roles = ["deployer", "resolver", "demo-authority", "faucet", "collateral-mint"];
+const roles = ["deployer", "keeper", "demo-authority", "faucet", "collateral-mint"];
 for (const r of roles) {
   const path = `${keysDir()}/${r}.json`;
   if (!existsSync(path)) writeKeypair(path, Keypair.generate());

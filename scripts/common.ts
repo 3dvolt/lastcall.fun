@@ -1,10 +1,10 @@
 import { AnchorProvider, Wallet } from "@anchor-lang/core";
-import { LifecycleClient, PROGRAM_ID } from "@lifecycle-markets/sdk";
+import { LifecycleClient, PROGRAM_ID, makeConnection } from "@lifecycle-markets/sdk";
 import { Connection, Keypair, LAMPORTS_PER_SOL, PublicKey } from "@solana/web3.js";
 import { config as loadEnv } from "dotenv";
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
-import { assertDevnetOrLocal } from "../resolver/src/safety.js";
+import { assertNetwork, type Network } from "./safety.js";
 
 loadEnv({ path: process.env.ENV_FILE ?? ".env", quiet: true });
 
@@ -22,13 +22,16 @@ export function writeKeypair(path: string, kp: Keypair) {
   writeFileSync(resolve(path), JSON.stringify(Array.from(kp.secretKey)), { mode: 0o600 });
 }
 export const keysDir = (): string => process.env.KEYS_DIR ?? "keys";
-export const loadRole = (name: "DEPLOYER" | "RESOLVER" | "DEMO_AUTHORITY" | "FAUCET"): Keypair =>
+export const loadRole = (name: "DEPLOYER" | "KEEPER" | "DEMO_AUTHORITY" | "FAUCET"): Keypair =>
   readKeypair(process.env[`${name}_KEYPAIR`] ?? `${keysDir()}/${name.toLowerCase().replace("_", "-")}.json`);
 
-export async function connect(): Promise<{ conn: Connection; cluster: "devnet" | "localnet" }> {
+/** NETWORK (devnet | mainnet | localnet) is explicit and verified against the RPC's genesis hash. Defaults to devnet. */
+export async function connect(): Promise<{ conn: Connection; cluster: Network }> {
   const url = env("RPC_URL");
-  const cluster = await assertDevnetOrLocal(url); // refuses mainnet
-  return { conn: new Connection(url, "confirmed"), cluster };
+  const cluster = (process.env.NETWORK ?? "devnet") as Network;
+  if (!["devnet", "mainnet", "localnet"].includes(cluster)) throw new Error("NETWORK must be devnet, mainnet or localnet");
+  await assertNetwork(url, cluster);
+  return { conn: makeConnection(url, "confirmed"), cluster };
 }
 
 export const programId = (): PublicKey => (process.env.PROGRAM_ID ? new PublicKey(process.env.PROGRAM_ID) : PROGRAM_ID);

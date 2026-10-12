@@ -68,7 +68,6 @@ export function ResolutionPanel({ market, buf, now }: { market: MarketAccount; b
       <p className="muted small">
         Everything above is read from <a href={explorerAddr(market.address.toBase58())} target="_blank" rel="noopener noreferrer">the market account</a>
         {" "}and its sample buffer. Price source: PumpSwap pool <span className="mono">{short(market.sourcePool.toBase58())}</span> + Pyth SOL/USD, read on-chain.
-        {market.sourceKind === "demoFeed" && " (TEST price feed)"}
       </p>
     </section>
   );

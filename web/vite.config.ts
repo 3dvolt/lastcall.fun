@@ -9,7 +9,7 @@ function csp(env: Record<string, string>): Plugin {
     transformIndexHtml(html) {
       const rpcs = [env.VITE_RPC_URL || "https://api.devnet.solana.com", env.VITE_MAINNET_RPC_URL, env.VITE_LIST_RPC_URL || "https://api.devnet.solana.com", env.VITE_MAINNET_LIST_RPC_URL || "https://api.mainnet-beta.solana.com"].filter(Boolean) as string[];
       const wsUrls = rpcs.map((r) => r.replace(/^http/, "ws"));
-      const origins = [...rpcs, ...wsUrls, env.VITE_FAUCET_API, "https://api.dexscreener.com"].filter(Boolean).map((u) => new URL(u as string).origin.replace(/\/$/, ""));
+      const origins = [...rpcs, ...wsUrls, "https://api.dexscreener.com"].filter(Boolean).map((u) => new URL(u as string).origin.replace(/\/$/, ""));
       const policy = [
         "default-src 'self'",
         "script-src 'self'",

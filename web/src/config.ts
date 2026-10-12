@@ -15,14 +15,10 @@ export interface NetworkConfig {
   listRpcUrl?: string;
   programId: PublicKey;
   collateralMint?: PublicKey;
-  /** test-only: also show markets that use the demo price feed (never on mainnet) */
-  allowDemoFeed: boolean;
-  faucetApi: string;
 }
 
 const e = import.meta.env as Record<string, string | undefined>;
 const pk = (v: string | undefined) => (v ? new PublicKey(v) : undefined);
-const url = (v: string | undefined) => (v ?? "").replace(/\/$/, "");
 
 // The base network (devnet, or localnet in development) uses the plain VITE_* variables.
 const baseId: NetworkId = e.VITE_CLUSTER === "localnet" ? "localnet" : "devnet";
@@ -34,8 +30,6 @@ const base: NetworkConfig = {
   listRpcUrl: e.VITE_LIST_RPC_URL || (baseId === "devnet" ? "https://api.devnet.solana.com" : undefined),
   programId: pk(e.VITE_PROGRAM_ID) ?? PROGRAM_ID,
   collateralMint: pk(e.VITE_COLLATERAL_MINT),
-  allowDemoFeed: baseId !== "devnet" || e.VITE_ALLOW_DEMO_FEED === "1",
-  faucetApi: url(e.VITE_FAUCET_API),
   configured: !!e.VITE_COLLATERAL_MINT,
 };
 
@@ -48,8 +42,6 @@ const mainnet: NetworkConfig = {
   listRpcUrl: e.VITE_MAINNET_LIST_RPC_URL || "https://api.mainnet-beta.solana.com",
   programId: pk(e.VITE_MAINNET_PROGRAM_ID) ?? PROGRAM_ID,
   collateralMint: pk(e.VITE_MAINNET_COLLATERAL_MINT),
-  allowDemoFeed: false, // the test price source is never trusted on mainnet
-  faucetApi: "", // never a faucet on mainnet
   configured: !!(e.VITE_MAINNET_RPC_URL && e.VITE_MAINNET_PROGRAM_ID && e.VITE_MAINNET_COLLATERAL_MINT),
 };
 
