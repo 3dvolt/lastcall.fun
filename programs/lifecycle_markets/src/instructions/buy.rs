@@ -41,7 +41,9 @@ pub fn handler(ctx: Context<Buy>, side: Side, collateral_in: u64, min_shares_out
     let now = Clock::get()?.unix_timestamp;
     let market = &mut ctx.accounts.market;
     require!(market.status == MarketStatus::Open, MarketError::MarketNotOpen);
-    require!(now < market.expiry_ts, MarketError::TradingClosed);
+    // Trading closes when the final window OPENS: the AMM prices (used by Void settlement) cannot be moved while the oracle is sampled.
+    let trading_ends = market.expiry_ts.checked_sub(i64::from(market.resolution_window_secs)).ok_or(MarketError::MathOverflow)?;
+    require!(now < trading_ends, MarketError::TradingClosed);
 
     let (own, other) = match side {
         Side::Yes => (market.yes_reserve, market.no_reserve),

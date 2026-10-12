@@ -3,6 +3,8 @@ pub mod error;
 pub mod events;
 pub mod instructions;
 pub mod math;
+pub mod rules;
+pub mod sources;
 pub mod state;
 
 use anchor_lang::prelude::*;
@@ -11,12 +13,22 @@ pub use constants::*;
 pub use instructions::*;
 pub use state::*;
 
+#[cfg(not(feature = "no-entrypoint"))]
+solana_security_txt::security_txt! {
+    name: "Last Call",
+    project_url: "https://last-call.fun",
+    contacts: "link:https://last-call.fun/.well-known/security.txt",
+    policy: "https://github.com/3dvolt/lastcall.fun#security-review",
+    source_code: "https://github.com/3dvolt/lastcall.fun"
+}
+
 declare_id!("2oLfv3LDx7bDCzbnkzuvmT13s6xrxWawJr97NcGmKwLJ");
 
 #[program]
 pub mod lifecycle_markets {
     use super::*;
 
+    #[allow(clippy::too_many_arguments)]
     pub fn create_market(
         ctx: Context<CreateMarket>,
         market_id: u64,
@@ -26,6 +38,10 @@ pub mod lifecycle_markets {
         resolution_window_secs: u32,
         initial_liquidity: u64,
         fee_bps: u16,
+        sample_interval_secs: u32,
+        min_liquidity_usd: u64,
+        source_kind: SourceKind,
+        oracle_authority: Pubkey,
     ) -> Result<()> {
         instructions::create_market::handler(
             ctx,
@@ -36,6 +52,10 @@ pub mod lifecycle_markets {
             resolution_window_secs,
             initial_liquidity,
             fee_bps,
+            sample_interval_secs,
+            min_liquidity_usd,
+            source_kind,
+            oracle_authority,
         )
     }
 
@@ -47,8 +67,14 @@ pub mod lifecycle_markets {
         instructions::sell::handler(ctx, side, shares_in, min_collateral_out)
     }
 
-    pub fn resolve(ctx: Context<Resolve>, outcome: Outcome, evidence_hash: [u8; 32]) -> Result<()> {
-        instructions::resolve::handler(ctx, outcome, evidence_hash)
+    /// Permissionless, only inside the final window: records the current price-source value into the slot for "now".
+    pub fn record_sample(ctx: Context<RecordSample>) -> Result<()> {
+        instructions::record_sample::handler(ctx)
+    }
+
+    /// Permissionless after expiry: the outcome is computed on-chain from the recorded samples.
+    pub fn resolve(ctx: Context<Resolve>) -> Result<()> {
+        instructions::resolve::handler(ctx)
     }
 
     pub fn redeem(ctx: Context<Redeem>) -> Result<()> {

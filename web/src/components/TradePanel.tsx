@@ -41,7 +41,7 @@ export function TradePanel({ market, position, balance, now }: { market: MarketA
   }, [text, amount, mode, side, market, client, slipBps]);
 
   let blocker: string | null = null;
-  if (!tradable) blocker = market.status === "open" ? "Trading is closed: the market has expired." : "This market is resolved.";
+  if (!tradable) blocker = market.status === "open" ? "Trading is closed: the final window has started, so the price can no longer be moved." : "This market is resolved.";
   else if (calc.kind === "error") blocker = calc.msg;
   else if (calc.kind === "buy" && balance !== undefined && amount! > balance) blocker = "Not enough test tokens. Use the faucet.";
   else if (calc.kind === "sell" && amount! > held) blocker = `You only hold ${formatUnits(held, 4)} ${side.toUpperCase()} shares.`;

@@ -1,4 +1,5 @@
 import { useEffect, type ReactNode } from "react";
+import { config } from "../config";
 
 export interface Row { k: string; v: ReactNode; strong?: boolean }
 
@@ -15,6 +16,7 @@ export function ConfirmModal(props: { title: string; rows: Row[]; warning?: stri
       <div className="modal" role="dialog" aria-modal="true" aria-label={title}>
         <h3>{title}</h3>
         <dl className="rows">{rows.map((r) => (<div key={r.k} className={r.strong ? "row strong" : "row"}><dt>{r.k}</dt><dd>{r.v}</dd></div>))}</dl>
+        {config.real && <p className="notice danger"><b>MAINNET:</b> this transaction uses real funds.</p>}
         {warning && <p className="notice warn">{warning}</p>}
         <p className="muted small">Your wallet will show this transaction for approval. Nothing is sent until you approve it there.</p>
         <div className="modal-actions">

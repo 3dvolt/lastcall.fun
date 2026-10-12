@@ -5,9 +5,9 @@
   "description": "Binary prediction markets on newly launched tokens - DEVNET DEMO",
   "workspaces": [
     "sdk",
-    "resolver",
     "scripts",
-    "web"
+    "web",
+    "keeper"
   ],
   "scripts": {
     "build": "npm run build -w sdk",
@@ -20,11 +20,14 @@
     "faucet-server": "tsx scripts/faucet-server.ts",
     "seed": "tsx scripts/seed-markets.ts",
     "scenario": "tsx scripts/scenario.ts",
-    "resolver": "tsx resolver/src/main.ts",
     "e2e-local": "bash scripts/e2e-local.sh",
-    "deploy:devnet": "RPC_URL=${RPC_URL:-https://api.devnet.solana.com} bash scripts/deploy.sh",
+    "deploy:devnet": "bash scripts/deploy.sh test",
     "web": "npm run dev -w web",
-    "web:build": "npm run build -w web"
+    "web:build": "npm run build -w web",
+    "preflight": "tsx scripts/preflight.ts",
+    "keeper": "tsx keeper/src/main.ts",
+    "create-market": "tsx scripts/create-market.ts",
+    "deploy:devnet:prod": "bash scripts/deploy.sh prod"
   },
   "engines": {
     "node": ">=20"

@@ -41,3 +41,25 @@ fn gen_vectors() {
         assert_eq!(existing, json, "vectors.json is stale; regenerate with GEN_VECTORS=1");
     }
 }
+
+/// Golden numbers for the real PumpSwap snapshot: the TS SDK must reproduce them exactly.
+#[test]
+fn gen_pumpswap_golden() {
+    use base64::Engine;
+    let v: serde_json::Value = serde_json::from_str(include_str!("fixtures/pumpswap_mainnet.json")).unwrap();
+    let bytes = |k: &str| base64::engine::general_purpose::STANDARD.decode(v[k]["data"].as_str().unwrap()).unwrap();
+    let (_, _, base) = lifecycle_markets::sources::parse_token_account(&bytes("base_vault")).unwrap();
+    let (_, _, quote) = lifecycle_markets::sources::parse_token_account(&bytes("quote_vault")).unwrap();
+    let (supply, decimals) = lifecycle_markets::sources::parse_mint(&bytes("base_mint")).unwrap();
+    let pyth = bytes("pyth_sol_usd");
+    let publish = i64::from_le_bytes(pyth[93..101].try_into().unwrap());
+    let usd = lifecycle_markets::sources::parse_pyth_sol_usd(&pyth, publish + 1).unwrap();
+    let (mcap, liq) = lifecycle_markets::sources::pump_quote(base, quote, supply, usd).unwrap();
+    let json = format!("{{\"base\":\"{base}\",\"quote\":\"{quote}\",\"supply\":\"{supply}\",\"decimals\":{decimals},\"publishTs\":{publish},\"usdPerSol6\":\"{usd}\",\"marketCap6\":\"{mcap}\",\"liquidity6\":\"{liq}\"}}\n");
+    let path = concat!(env!("CARGO_MANIFEST_DIR"), "/../../sdk/test/pumpswap_golden.json");
+    if std::env::var("GEN_VECTORS").is_ok() {
+        std::fs::write(path, &json).unwrap();
+    } else {
+        assert_eq!(std::fs::read_to_string(path).expect("run with GEN_VECTORS=1"), json);
+    }
+}

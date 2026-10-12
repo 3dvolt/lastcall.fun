@@ -56,8 +56,7 @@ fn run(seed: u64, outcome: Outcome) {
     }
 
     assert!(ok_buys >= 20 && ok_sells >= 5, "test must exercise trades: buys {ok_buys} sells {ok_sells} seed {seed}");
-    env.set_time(T0 + 600);
-    env.resolve(&m, outcome).unwrap();
+    env.settle(&m, outcome).unwrap();
     let mk = env.market(&m.market);
     let mut owed = 0u64;
     let mut order: Vec<usize> = (0..users.len()).collect();

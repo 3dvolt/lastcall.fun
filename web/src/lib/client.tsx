@@ -1,7 +1,7 @@
 import { AnchorProvider } from "@anchor-lang/core";
 import { LifecycleClient } from "@lifecycle-markets/sdk";
 import { useAnchorWallet, useConnection } from "@solana/wallet-adapter-react";
-import { Keypair } from "@solana/web3.js";
+import { Connection, Keypair } from "@solana/web3.js";
 import { useMemo } from "react";
 import { config } from "../config";
 
@@ -19,6 +19,7 @@ export function useClient(): { client: LifecycleClient; connected: boolean } {
   return useMemo(() => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const provider = new AnchorProvider(connection, (wallet ?? readOnlyWallet) as any, { commitment: "confirmed" });
-    return { client: new LifecycleClient(provider, config.programId), connected: !!wallet };
+    const listConn = config.listRpcUrl && config.listRpcUrl !== config.rpcUrl ? new Connection(config.listRpcUrl, "confirmed") : undefined;
+    return { client: new LifecycleClient(provider, config.programId, listConn), connected: !!wallet };
   }, [connection, wallet]);
 }

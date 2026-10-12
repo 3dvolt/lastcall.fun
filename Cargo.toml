@@ -7,6 +7,7 @@ edition = "2021"
 rust-version = "1.89.0"
 
 [profile.release]
+opt-level = "z" # smaller .so = cheaper program rent on deploy
 overflow-checks = true
 lto = "fat"
 codegen-units = 1

@@ -1,6 +1,6 @@
 import type { PublicKey } from "@solana/web3.js";
 import type { BN } from "@anchor-lang/core";
-import type { FeedAccount, MarketAccount, MarketStatus, PositionAccount } from "./types.js";
+import type { FeedAccount, MarketAccount, MarketStatus, PositionAccount, SampleBufferAccount, SourceKind } from "./types.js";
 
 const big = (x: BN | bigint | number): bigint => BigInt(x.toString());
 
@@ -27,18 +27,26 @@ export function parseMarket(address: PublicKey, a: any): MarketAccount {
     threshold: big(a.threshold),
     expiryTs: big(a.expiryTs),
     resolutionWindowSecs: Number(a.resolutionWindowSecs),
-    resolver: a.resolver,
+    sampleIntervalSecs: Number(a.sampleIntervalSecs),
+    sampleSlots: Number(a.sampleSlots),
+    minLiquidityUsd: big(a.minLiquidityUsd),
+    oracleAuthority: a.oracleAuthority,
+    sourceKind: (Object.keys(a.sourceKind)[0] === "pumpSwap" ? "pumpSwap" : "demoFeed") as SourceKind,
+    sourcePool: a.sourcePool,
     status: statusOf(a.status),
     yesReserve: big(a.yesReserve),
     noReserve: big(a.noReserve),
     totalMinted: big(a.totalMinted),
     feeBps: Number(a.feeBps),
     feesAccrued: big(a.feesAccrued),
-    evidenceHash: Buffer.from(a.evidenceHash).toString("hex"),
     voidYesPrice: big(a.voidYesPrice),
     voidNoPrice: big(a.voidNoPrice),
     userObligation: big(a.userObligation),
     residualClaimed: Boolean(a.residualClaimed),
+    resSamples: Number(a.resSamples),
+    resAbove: Number(a.resAbove),
+    resTwap: big(a.resTwap),
+    resLiqMedian: big(a.resLiqMedian),
   };
 }
 
@@ -64,5 +72,16 @@ export function parseFeed(address: PublicKey, a: any): FeedAccount {
     liquidityUsd: big(a.liquidityUsd),
     updatedTs: big(a.updatedTs),
     authority: a.authority,
+  };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export function parseSampleBuffer(slots: number, a: any): SampleBufferAccount {
+  return {
+    market: a.market,
+    count: Number(a.count),
+    mcap: (a.mcap as BN[]).slice(0, slots).map(big),
+    liquidity: (a.liquidity as BN[]).slice(0, slots).map(big),
+    filled: (a.filled as boolean[]).slice(0, slots),
   };
 }

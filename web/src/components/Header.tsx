@@ -2,8 +2,9 @@ import { useWallet } from "@solana/wallet-adapter-react";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { Link, NavLink } from "react-router-dom";
 import { Logo } from "./Logo";
+import { NetworkSelect } from "./NetworkSelect";
 import { config } from "../config";
-import { useCollateralBalance, useHealth } from "../hooks/queries";
+import { useCollateralBalance } from "../hooks/queries";
 import { requestFaucet } from "../lib/api";
 import { formatUnits } from "../lib/format";
 import { friendlyError } from "../lib/errors";
@@ -14,7 +15,6 @@ import { useState } from "react";
 export function Header() {
   const { publicKey } = useWallet();
   const balance = useCollateralBalance(publicKey).data;
-  const health = useHealth();
   const toast = useToast();
   const qc = useQueryClient();
   const [busy, setBusy] = useState(false);
@@ -28,10 +28,7 @@ export function Header() {
 
   return (
     <>
-      <div className="banner" role="note">
-        <b>{config.cluster === "devnet" ? "DEVNET DEMO" : "LOCAL DEMO"}</b> · test tokens only, no real value. Never send real funds.
-        {health.isError && <span className="warn-text"> · Resolver service unreachable</span>}
-      </div>
+      {config.real && <div className="banner real" role="alert"><b>MAINNET</b> · real funds · unaudited software</div>}
       <header className="header">
         <Link to="/" className="brand"><Logo size={32} /> <span className="wordmark">Last <b>Call</b></span></Link>
         <nav>
@@ -39,6 +36,7 @@ export function Header() {
           <NavLink to="/create">Create</NavLink>
         </nav>
         <div className="grow" />
+        <NetworkSelect />
         {publicKey && (
           <div className="bal" title="Test token balance">
             {balance === undefined ? "…" : formatUnits(balance, 2)} <small>test</small>

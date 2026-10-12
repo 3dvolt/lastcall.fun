@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { canonicalJson, evidenceHashHex } from "../src/lib/canonical";
+import { PROGRAM_ERROR_NAMES } from "@lifecycle-markets/sdk";
 import { friendlyError } from "../src/lib/errors";
 import { formatUnits, parseUnits, withSlippage } from "../src/lib/format";
 
@@ -20,21 +20,13 @@ describe("parseUnits", () => {
   });
 });
 
-describe("evidence hash", () => {
-  it("matches the resolver's canonical form (golden value)", async () => {
-    // golden value computed with resolver/src/canonical.ts on the same object
-    const ev = { b: 1, a: { d: "x", c: [3, { z: 1, y: 2 }] }, hash: "ignored", txSignature: "ignored" };
-    expect(canonicalJson({ b: 1, a: { d: "x", c: [3, { z: 1, y: 2 }] } })).toBe('{"a":{"c":[3,{"y":2,"z":1}],"d":"x"},"b":1}');
-    const h = await evidenceHashHex(ev);
-    expect(h).toMatch(/^[0-9a-f]{64}$/);
-    expect(await evidenceHashHex({ ...ev, hash: "other" })).toBe(h);
-  });
-});
-
 describe("friendlyError", () => {
   it("maps program codes and wallet rejections", () => {
-    expect(friendlyError(new Error("failed: custom program error: 0x1775"))).toMatch(/slippage/i);
-    expect(friendlyError(new Error('{"InstructionError":[0,{"Custom":6007}]}'))).toMatch(/expired/i);
+    // codes come from the IDL: assert by NAME so the test survives error re-numbering
+    const code = (name: string) => Number(Object.entries(PROGRAM_ERROR_NAMES).find(([, n]) => n === name)![0]);
+    expect(friendlyError(new Error(`failed: custom program error: 0x${code("SlippageExceeded").toString(16)}`))).toMatch(/slippage/i);
+    expect(friendlyError(new Error(`{"InstructionError":[0,{"Custom":${code("TradingClosed")}}]}`))).toMatch(/expired/i);
+    expect(friendlyError(new Error(`custom program error: 0x${code("OutsideWindow").toString(16)}`))).toMatch(/final window/i);
     expect(friendlyError(new Error("User rejected the request."))).toMatch(/cancelled/i);
   });
 });

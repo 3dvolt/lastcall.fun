@@ -1,29 +1,6 @@
 import { config } from "../config";
 
-export interface ApiSample { ts: number; price: string; circulatingSupply: string; liquidityUsd: string; marketCap: string; stale: boolean }
-export interface ApiEvidence {
-  version: number; market: string; tokenRef: string; threshold: string; expiryTs: number;
-  window: { startTs: number; endTs: number; secs: number };
-  parameters: { minLiquidityUsd: string; minCoverage: number; minSustainedFraction: number; sampleIntervalSecs: number; maxStalenessSecs: number };
-  samples: { count: number; staleExcluded: number; expected: number; coverage: number; aboveThresholdFraction: number;
-    marketCap: { min: string; max: string; median: string; twap: string }; liquidity: { min: string; median: string } };
-  rules: { liquidityOk: boolean; coverageOk: boolean; twapAtLeastThreshold: boolean; sustainedAtLeastMinFraction: boolean };
-  outcome: "yes" | "no" | "void"; reason: string; feed: { address: string; authority: string }; hash: string; txSignature?: string;
-}
-export interface ApiHealth { ok: boolean; resolver: string; demoAuthority: string; cluster: string; provider: string; lastSampleTs: number }
-
-async function getJson<T>(path: string): Promise<T | null> {
-  if (!config.resolverApi) return null;
-  const res = await fetch(`${config.resolverApi}${path}`, { headers: { accept: "application/json" }, credentials: "omit", referrerPolicy: "no-referrer" });
-  if (res.status === 404) return null;
-  if (!res.ok) throw new Error(`resolver API ${res.status}`);
-  return (await res.json()) as T;
-}
-
-export const fetchHealth = () => getJson<ApiHealth>("/health");
-export const fetchSamples = async (market: string) => (await getJson<{ samples: ApiSample[] }>(`/markets/${market}/samples?limit=1000`))?.samples ?? [];
-export const fetchEvidence = (market: string) => getJson<ApiEvidence>(`/markets/${market}/evidence`);
-
+/** Test-token faucet (devnet / local only). Mainnet has none. */
 export async function requestFaucet(wallet: string): Promise<void> {
   if (!config.faucetApi) throw new Error("Faucet is not configured.");
   const res = await fetch(`${config.faucetApi}/faucet`, {
@@ -31,4 +8,16 @@ export async function requestFaucet(wallet: string): Promise<void> {
   });
   const body = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(body?.error ?? `faucet error ${res.status}`);
+}
+
+/** Display-only token name/symbol from DexScreener (never used for any decision). Null on any problem. */
+export async function fetchTokenLabel(mint: string): Promise<{ symbol: string; name: string } | null> {
+  try {
+    const res = await fetch(`https://api.dexscreener.com/latest/dex/tokens/${encodeURIComponent(mint)}`, { credentials: "omit", referrerPolicy: "no-referrer", signal: AbortSignal.timeout(5000) });
+    if (!res.ok) return null;
+    const j = (await res.json()) as { pairs?: Array<{ chainId?: string; baseToken?: { address?: string; symbol?: string; name?: string } }> };
+    const p = j.pairs?.find((x) => x.chainId === "solana" && x.baseToken?.address === mint);
+    const clean = (v?: string, n = 24) => (v ?? "").replace(/[^\p{L}\p{N} ._$-]/gu, "").slice(0, n);
+    return p?.baseToken?.symbol ? { symbol: clean(p.baseToken.symbol, 12), name: clean(p.baseToken.name, 40) } : null;
+  } catch { return null; }
 }

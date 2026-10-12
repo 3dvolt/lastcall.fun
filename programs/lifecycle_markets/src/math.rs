@@ -50,7 +50,7 @@ pub fn ceil_div(a: u128, b: u128) -> Result<u128, MathError> {
     if b == 0 {
         return Err(MathError::Overflow);
     }
-    a.checked_add(b - 1).map(|x| x / b).ok_or(MathError::Overflow)
+    Ok(a.div_ceil(b))
 }
 
 /// fee = ceil(amount * fee_bps / 10_000)
@@ -65,7 +65,7 @@ pub fn isqrt_floor(x: u128) -> u128 {
         return x;
     }
     // Newton iteration from an upper bound.
-    let mut r = 1u128 << ((128 - x.leading_zeros() + 1) / 2);
+    let mut r = 1u128 << (128 - x.leading_zeros()).div_ceil(2);
     loop {
         let next = (r + x / r) >> 1;
         if next >= r {

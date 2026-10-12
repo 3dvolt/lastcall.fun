@@ -264,7 +264,34 @@ export type LifecycleMarkets = {
           "writable": true
         },
         {
-          "name": "resolver"
+          "name": "tokenMint"
+        },
+        {
+          "name": "sourceAccount"
+        },
+        {
+          "name": "sampleBuffer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  109,
+                  112,
+                  108,
+                  101,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
         },
         {
           "name": "tokenProgram",
@@ -303,6 +330,26 @@ export type LifecycleMarkets = {
         {
           "name": "feeBps",
           "type": "u16"
+        },
+        {
+          "name": "sampleIntervalSecs",
+          "type": "u32"
+        },
+        {
+          "name": "minLiquidityUsd",
+          "type": "u64"
+        },
+        {
+          "name": "sourceKind",
+          "type": {
+            "defined": {
+              "name": "sourceKind"
+            }
+          }
+        },
+        {
+          "name": "oracleAuthority",
+          "type": "pubkey"
         }
       ]
     },
@@ -371,6 +418,88 @@ export type LifecycleMarkets = {
           "type": "u64"
         }
       ]
+    },
+    {
+      "name": "recordSample",
+      "docs": [
+        "Permissionless, only inside the final window: records the current price-source value into the slot for \"now\"."
+      ],
+      "discriminator": [
+        73,
+        103,
+        147,
+        255,
+        82,
+        182,
+        168,
+        34
+      ],
+      "accounts": [
+        {
+          "name": "recorder",
+          "signer": true
+        },
+        {
+          "name": "market",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  109,
+                  97,
+                  114,
+                  107,
+                  101,
+                  116
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market.creator",
+                "account": "market"
+              },
+              {
+                "kind": "account",
+                "path": "market.marketId",
+                "account": "market"
+              }
+            ]
+          },
+          "relations": [
+            "sampleBuffer"
+          ]
+        },
+        {
+          "name": "sampleBuffer",
+          "writable": true,
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  109,
+                  112,
+                  108,
+                  101,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
+            ]
+          }
+        },
+        {
+          "name": "instructions",
+          "address": "Sysvar1nstructions1111111111111111111111111"
+        }
+      ],
+      "args": []
     },
     {
       "name": "redeem",
@@ -469,6 +598,9 @@ export type LifecycleMarkets = {
     },
     {
       "name": "resolve",
+      "docs": [
+        "Permissionless after expiry: the outcome is computed on-chain from the recorded samples."
+      ],
       "discriminator": [
         246,
         150,
@@ -481,11 +613,8 @@ export type LifecycleMarkets = {
       ],
       "accounts": [
         {
-          "name": "resolver",
-          "signer": true,
-          "relations": [
-            "market"
-          ]
+          "name": "caller",
+          "signer": true
         },
         {
           "name": "market",
@@ -514,28 +643,36 @@ export type LifecycleMarkets = {
                 "account": "market"
               }
             ]
-          }
-        }
-      ],
-      "args": [
-        {
-          "name": "outcome",
-          "type": {
-            "defined": {
-              "name": "outcome"
-            }
-          }
+          },
+          "relations": [
+            "sampleBuffer"
+          ]
         },
         {
-          "name": "evidenceHash",
-          "type": {
-            "array": [
-              "u8",
-              32
+          "name": "sampleBuffer",
+          "pda": {
+            "seeds": [
+              {
+                "kind": "const",
+                "value": [
+                  115,
+                  97,
+                  109,
+                  112,
+                  108,
+                  101,
+                  115
+                ]
+              },
+              {
+                "kind": "account",
+                "path": "market"
+              }
             ]
           }
         }
-      ]
+      ],
+      "args": []
     },
     {
       "name": "sell",
@@ -690,6 +827,19 @@ export type LifecycleMarkets = {
         247,
         208
       ]
+    },
+    {
+      "name": "sampleBuffer",
+      "discriminator": [
+        131,
+        100,
+        144,
+        83,
+        24,
+        164,
+        251,
+        11
+      ]
     }
   ],
   "events": [
@@ -759,6 +909,19 @@ export type LifecycleMarkets = {
       ]
     },
     {
+      "name": "sampleRecorded",
+      "discriminator": [
+        84,
+        131,
+        33,
+        9,
+        193,
+        184,
+        103,
+        242
+      ]
+    },
+    {
       "name": "trade",
       "discriminator": [
         24,
@@ -825,65 +988,105 @@ export type LifecycleMarkets = {
     },
     {
       "code": 6010,
-      "name": "unauthorizedResolver",
-      "msg": "Signer is not the market resolver"
-    },
-    {
-      "code": 6011,
       "name": "unauthorizedCreator",
       "msg": "Signer is not the market creator"
     },
     {
-      "code": 6012,
+      "code": 6011,
       "name": "unauthorizedFeedAuthority",
       "msg": "Signer is not the feed authority"
     },
     {
-      "code": 6013,
+      "code": 6012,
       "name": "invalidExpiry",
       "msg": "Expiry must be in the future"
     },
     {
-      "code": 6014,
+      "code": 6013,
       "name": "invalidParameter",
       "msg": "Invalid parameter"
     },
     {
-      "code": 6015,
+      "code": 6014,
       "name": "feeTooHigh",
       "msg": "Fee too high"
     },
     {
-      "code": 6016,
+      "code": 6015,
       "name": "alreadyRedeemed",
       "msg": "Position already redeemed"
     },
     {
-      "code": 6017,
+      "code": 6016,
       "name": "alreadyClaimed",
       "msg": "Residual already claimed"
     },
     {
-      "code": 6018,
+      "code": 6017,
       "name": "insufficientShares",
       "msg": "Not enough shares"
     },
     {
-      "code": 6019,
+      "code": 6018,
       "name": "accountMismatch",
       "msg": "Account does not match market"
     },
     {
-      "code": 6020,
+      "code": 6019,
       "name": "invalidCollateralMint",
-      "msg": "Collateral mint must not have a freeze authority"
+      "msg": "Collateral mint must not have a freeze authority (USDC is the only exception)"
+    },
+    {
+      "code": 6020,
+      "name": "outsideWindow",
+      "msg": "Sampling is only possible inside the final resolution window"
+    },
+    {
+      "code": 6021,
+      "name": "slotAlreadyFilled",
+      "msg": "This sample slot is already filled"
+    },
+    {
+      "code": 6022,
+      "name": "staleFeed",
+      "msg": "The price feed is stale or from the future"
+    },
+    {
+      "code": 6023,
+      "name": "invalidSampling",
+      "msg": "Invalid sampling configuration"
+    },
+    {
+      "code": 6024,
+      "name": "invalidOracle",
+      "msg": "Price source account is not the one registered for this market"
+    },
+    {
+      "code": 6025,
+      "name": "invalidSource",
+      "msg": "Unsupported or invalid price source"
+    },
+    {
+      "code": 6026,
+      "name": "demoDisabled",
+      "msg": "The demo price feed is disabled in this build"
+    },
+    {
+      "code": 6027,
+      "name": "notStandalone",
+      "msg": "Samples must be recorded by a transaction that contains only this instruction"
+    },
+    {
+      "code": 6028,
+      "name": "unsafeToken",
+      "msg": "The token's issuer can print supply or holds a Token-2022 power over the pool (mint authority, permanent delegate, transfer hook, pausable)"
     }
   ],
   "types": [
     {
       "name": "demoFeed",
       "docs": [
-        "PDA [\"feed\", token_ref]. DEMO ONLY: centralized mock price feed."
+        "PDA [\"feed\", token_ref]. Price publisher account; written only by its authority."
       ],
       "type": {
         "kind": "struct",
@@ -986,7 +1189,7 @@ export type LifecycleMarkets = {
           {
             "name": "tokenRef",
             "docs": [
-              "Pubkey of the tracked token (opaque identifier; used as DemoFeed key)."
+              "Pubkey of the tracked token (opaque identifier; key of its DemoFeed)."
             ],
             "type": "pubkey"
           },
@@ -1004,12 +1207,51 @@ export type LifecycleMarkets = {
           {
             "name": "resolutionWindowSecs",
             "docs": [
-              "Length (seconds) of the sampling window the resolver must evaluate, ending at expiry_ts."
+              "Length (seconds) of the final window that decides the outcome, ending at expiry_ts."
             ],
             "type": "u32"
           },
           {
-            "name": "resolver",
+            "name": "sampleIntervalSecs",
+            "docs": [
+              "Seconds per sample slot inside the window."
+            ],
+            "type": "u32"
+          },
+          {
+            "name": "sampleSlots",
+            "docs": [
+              "Number of sample slots = ceil(window / interval), <= MAX_SLOTS."
+            ],
+            "type": "u16"
+          },
+          {
+            "name": "minLiquidityUsd",
+            "docs": [
+              "Minimum median liquidity (USD, 6 decimals) in the window; below it the market is void."
+            ],
+            "type": "u64"
+          },
+          {
+            "name": "oracleAuthority",
+            "docs": [
+              "DemoFeed source only: the publisher whose feed writes are accepted. Pubkey::default() for PumpSwap."
+            ],
+            "type": "pubkey"
+          },
+          {
+            "name": "sourceKind",
+            "type": {
+              "defined": {
+                "name": "sourceKind"
+              }
+            }
+          },
+          {
+            "name": "sourcePool",
+            "docs": [
+              "PumpSwap: the pool account. DemoFeed: the feed PDA."
+            ],
             "type": "pubkey"
           },
           {
@@ -1031,7 +1273,7 @@ export type LifecycleMarkets = {
           {
             "name": "totalMinted",
             "docs": [
-              "Complete sets minted. Invariant: vault balance == total_minted + fees_accrued - redeemed/claimed payouts."
+              "Complete sets minted. Invariant: vault balance == total_minted + fees_accrued - payouts."
             ],
             "type": "u64"
           },
@@ -1041,19 +1283,7 @@ export type LifecycleMarkets = {
           },
           {
             "name": "feesAccrued",
-            "docs": [
-              "Fees collected (stay in the vault, belong to the creator)."
-            ],
             "type": "u64"
-          },
-          {
-            "name": "evidenceHash",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
           },
           {
             "name": "voidYesPrice",
@@ -1076,6 +1306,22 @@ export type LifecycleMarkets = {
           {
             "name": "residualClaimed",
             "type": "bool"
+          },
+          {
+            "name": "resSamples",
+            "type": "u16"
+          },
+          {
+            "name": "resAbove",
+            "type": "u16"
+          },
+          {
+            "name": "resTwap",
+            "type": "u64"
+          },
+          {
+            "name": "resLiqMedian",
+            "type": "u64"
           },
           {
             "name": "bump",
@@ -1122,8 +1368,32 @@ export type LifecycleMarkets = {
             "type": "u32"
           },
           {
-            "name": "resolver",
+            "name": "oracleAuthority",
             "type": "pubkey"
+          },
+          {
+            "name": "sourceKind",
+            "type": {
+              "defined": {
+                "name": "sourceKind"
+              }
+            }
+          },
+          {
+            "name": "sourcePool",
+            "type": "pubkey"
+          },
+          {
+            "name": "sampleIntervalSecs",
+            "type": "u32"
+          },
+          {
+            "name": "sampleSlots",
+            "type": "u16"
+          },
+          {
+            "name": "minLiquidityUsd",
+            "type": "u64"
           },
           {
             "name": "initialLiquidity",
@@ -1274,13 +1544,24 @@ export type LifecycleMarkets = {
             }
           },
           {
-            "name": "evidenceHash",
-            "type": {
-              "array": [
-                "u8",
-                32
-              ]
-            }
+            "name": "resolvedBy",
+            "type": "pubkey"
+          },
+          {
+            "name": "samples",
+            "type": "u16"
+          },
+          {
+            "name": "above",
+            "type": "u16"
+          },
+          {
+            "name": "twap",
+            "type": "u64"
+          },
+          {
+            "name": "liqMedian",
+            "type": "u64"
           },
           {
             "name": "yesReserve",
@@ -1302,6 +1583,91 @@ export type LifecycleMarkets = {
       }
     },
     {
+      "name": "sampleBuffer",
+      "docs": [
+        "PDA [\"samples\", market]. One slot per `sample_interval_secs` in the final window; first valid writer wins."
+      ],
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "bump",
+            "type": "u8"
+          },
+          {
+            "name": "count",
+            "type": "u16"
+          },
+          {
+            "name": "mcap",
+            "docs": [
+              "market cap in USD (6 decimals) read from the feed when the slot was recorded"
+            ],
+            "type": {
+              "array": [
+                "u64",
+                120
+              ]
+            }
+          },
+          {
+            "name": "liquidity",
+            "type": {
+              "array": [
+                "u64",
+                120
+              ]
+            }
+          },
+          {
+            "name": "filled",
+            "type": {
+              "array": [
+                "bool",
+                120
+              ]
+            }
+          }
+        ]
+      }
+    },
+    {
+      "name": "sampleRecorded",
+      "type": {
+        "kind": "struct",
+        "fields": [
+          {
+            "name": "market",
+            "type": "pubkey"
+          },
+          {
+            "name": "slot",
+            "type": "u16"
+          },
+          {
+            "name": "marketCap",
+            "type": "u64"
+          },
+          {
+            "name": "liquidity",
+            "type": "u64"
+          },
+          {
+            "name": "ts",
+            "type": "i64"
+          },
+          {
+            "name": "recorder",
+            "type": "pubkey"
+          }
+        ]
+      }
+    },
+    {
       "name": "side",
       "type": {
         "kind": "enum",
@@ -1311,6 +1677,23 @@ export type LifecycleMarkets = {
           },
           {
             "name": "no"
+          }
+        ]
+      }
+    },
+    {
+      "name": "sourceKind",
+      "docs": [
+        "Where a market's price data comes from. Fixed at creation."
+      ],
+      "type": {
+        "kind": "enum",
+        "variants": [
+          {
+            "name": "demoFeed"
+          },
+          {
+            "name": "pumpSwap"
           }
         ]
       }
@@ -1389,6 +1772,11 @@ export type LifecycleMarkets = {
       "name": "positionSeed",
       "type": "bytes",
       "value": "[112, 111, 115, 105, 116, 105, 111, 110]"
+    },
+    {
+      "name": "samplesSeed",
+      "type": "bytes",
+      "value": "[115, 97, 109, 112, 108, 101, 115]"
     },
     {
       "name": "vaultSeed",

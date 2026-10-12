@@ -1,6 +1,6 @@
 use anchor_lang::prelude::*;
 
-use crate::state::{Outcome, Side};
+use crate::state::{Outcome, Side, SourceKind};
 
 #[event]
 pub struct MarketCreated {
@@ -11,7 +11,12 @@ pub struct MarketCreated {
     pub threshold: u64,
     pub expiry_ts: i64,
     pub resolution_window_secs: u32,
-    pub resolver: Pubkey,
+    pub oracle_authority: Pubkey,
+    pub source_kind: SourceKind,
+    pub source_pool: Pubkey,
+    pub sample_interval_secs: u32,
+    pub sample_slots: u16,
+    pub min_liquidity_usd: u64,
     pub initial_liquidity: u64,
     pub fee_bps: u16,
 }
@@ -36,7 +41,11 @@ pub struct Trade {
 pub struct Resolved {
     pub market: Pubkey,
     pub outcome: Outcome,
-    pub evidence_hash: [u8; 32],
+    pub resolved_by: Pubkey,
+    pub samples: u16,
+    pub above: u16,
+    pub twap: u64,
+    pub liq_median: u64,
     pub yes_reserve: u64,
     pub no_reserve: u64,
     pub user_obligation: u64,
@@ -66,4 +75,14 @@ pub struct FeedUpdated {
     pub circulating_supply: u64,
     pub liquidity_usd: u64,
     pub ts: i64,
+}
+
+#[event]
+pub struct SampleRecorded {
+    pub market: Pubkey,
+    pub slot: u16,
+    pub market_cap: u64,
+    pub liquidity: u64,
+    pub ts: i64,
+    pub recorder: Pubkey,
 }

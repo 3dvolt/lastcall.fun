@@ -30,6 +30,7 @@ pub fn handler(
     circulating_supply: u64,
     liquidity_usd: u64,
 ) -> Result<()> {
+    require!(cfg!(feature = "demo-feed"), MarketError::DemoDisabled);
     let now = Clock::get()?.unix_timestamp;
     let feed = &mut ctx.accounts.feed;
     if feed.authority == Pubkey::default() {

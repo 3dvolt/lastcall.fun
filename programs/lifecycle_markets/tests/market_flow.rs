@@ -20,7 +20,9 @@ fn create_market_initial_state() {
     assert_eq!(mk.creator, creator.kp.pubkey());
     assert_eq!((mk.yes_reserve, mk.no_reserve, mk.total_minted), (1_000 * ONE, 1_000 * ONE, 1_000 * ONE));
     assert_eq!(mk.status, MarketStatus::Open);
-    assert_eq!(mk.resolver, env.resolver.pubkey());
+    assert_eq!(mk.oracle_authority, env.publisher.pubkey());
+    assert_eq!((mk.sample_slots, mk.sample_interval_secs), (12, 10));
+    assert_eq!(env.sample_buffer(&m).count, 0);
     assert_eq!(env.token_balance(&m.vault), 1_000 * ONE);
     assert_eq!(env.token_balance(&creator.ata), 9_000 * ONE);
 }
@@ -30,9 +32,11 @@ fn create_market_validation() {
     let mut env = Env::new();
     let creator = env.new_user(10_000 * ONE);
     assert_market_err(env.create_market(&creator, 1, THRESHOLD, T0, 100 * ONE, 0), MarketError::InvalidExpiry);
-    assert_market_err(env.create_market(&creator, 2, THRESHOLD, T0 + 10, 100 * ONE, 1_001), MarketError::FeeTooHigh);
-    assert_market_err(env.create_market(&creator, 3, 0, T0 + 10, 100 * ONE, 0), MarketError::InvalidParameter);
-    assert_market_err(env.create_market(&creator, 4, THRESHOLD, T0 + 10, 0, 0), MarketError::ZeroAmount);
+    assert_market_err(env.create_market(&creator, 2, THRESHOLD, T0 + 600, 100 * ONE, 1_001), MarketError::FeeTooHigh);
+    assert_market_err(env.create_market(&creator, 3, 0, T0 + 600, 100 * ONE, 0), MarketError::InvalidParameter);
+    // there must be a trading phase before the 120 s final window opens
+    assert_market_err(env.create_market(&creator, 5, THRESHOLD, T0 + 100, 100 * ONE, 0), MarketError::InvalidExpiry);
+    assert_market_err(env.create_market(&creator, 4, THRESHOLD, T0 + 600, 0, 0), MarketError::ZeroAmount);
 }
 
 #[test]
@@ -127,23 +131,18 @@ fn round_trip_loses_at_most_fees() {
 }
 
 #[test]
-fn resolve_rules() {
-    let (mut env, creator, m) = setup(0);
+fn resolve_is_permissionless_and_only_after_expiry() {
+    let (mut env, _creator, m) = setup(0);
     // before expiry
-    assert_market_err(env.resolve(&m, Outcome::Yes), MarketError::NotExpired);
-    env.set_time(T0 + 600);
-    // unauthorized
+    assert_market_err(env.resolve(&m), MarketError::NotExpired);
+    // any random wallet (not creator, not publisher) can resolve once expired
     let rando = Keypair::new();
     env.svm.airdrop(&rando.pubkey(), 1_000_000_000).unwrap();
-    assert_market_err(env.resolve_as(&rando, &m, Outcome::Yes, [0; 32]), MarketError::UnauthorizedResolver);
-    // creator is not resolver either
-    let kp = Keypair::try_from(creator.kp.to_bytes().as_slice()).unwrap();
-    assert_market_err(env.resolve_as(&kp, &m, Outcome::Yes, [0; 32]), MarketError::UnauthorizedResolver);
-    env.resolve(&m, Outcome::No).unwrap();
+    env.set_time(m.expiry_ts);
+    env.resolve_by(&rando, &m).unwrap();
     let mk = env.market(&m.market);
-    assert_eq!(mk.status, MarketStatus::ResolvedNo);
-    assert_eq!(mk.evidence_hash, [7u8; 32]);
-    assert_market_err(env.resolve(&m, Outcome::Yes), MarketError::MarketNotOpen);
+    assert_eq!(mk.status, MarketStatus::Void, "no samples -> void");
+    assert_market_err(env.resolve_by(&rando, &m), MarketError::MarketNotOpen);
 }
 
 #[test]
@@ -156,8 +155,7 @@ fn redeem_yes_and_double_redeem_and_residual() {
     assert_market_err(env.redeem(&winner, &m), MarketError::NotResolved);
     assert_market_err(env.claim_residual(&creator, &m), MarketError::NotResolved);
 
-    env.set_time(T0 + 600);
-    env.resolve(&m, Outcome::Yes).unwrap();
+    env.settle(&m, Outcome::Yes).unwrap();
     let mk = env.market(&m.market);
     let wshares = env.position(&m.market, &winner.kp.pubkey()).unwrap().yes_shares;
     assert_eq!(mk.user_obligation, mk.total_minted - mk.yes_reserve);
@@ -187,8 +185,7 @@ fn void_path_solvent() {
     let b = env.new_user(1_000 * ONE);
     env.buy(&a, &m, Side::Yes, 300 * ONE, 0).unwrap();
     env.buy(&b, &m, Side::No, 120 * ONE, 0).unwrap();
-    env.set_time(T0 + 600);
-    env.resolve(&m, Outcome::Void).unwrap();
+    env.settle(&m, Outcome::Void).unwrap();
     let mk = env.market(&m.market);
     assert_eq!(mk.status, MarketStatus::Void);
     let (py, pn) = math::void_prices(mk.yes_reserve, mk.no_reserve).unwrap();

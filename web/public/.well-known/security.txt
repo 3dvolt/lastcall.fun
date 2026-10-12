@@ -1,0 +1,6 @@
+# Referenced by the on-chain security.txt of the Last Call program.
+Contact: https://github.com/3dvolt/lastcall.fun/security/advisories/new
+Expires: 2027-10-12T00:00:00.000Z
+Preferred-Languages: en, it
+Canonical: https://last-call.fun/.well-known/security.txt
+Policy: https://github.com/3dvolt/lastcall.fun#security-review

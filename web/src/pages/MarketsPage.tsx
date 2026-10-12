@@ -1,8 +1,9 @@
 import { Link } from "react-router-dom";
 import { useState } from "react";
 import { OddsBar } from "../components/OddsBar";
-import { useMarkets, useNow } from "../hooks/queries";
-import { countdown, formatUnits, usd } from "../lib/format";
+import type { MarketAccount } from "@lifecycle-markets/sdk";
+import { useLiveQuote, useMarkets, useNow, useTokenLabel } from "../hooks/queries";
+import { countdown, formatUnits, pct, usd } from "../lib/format";
 import { marketTitle, statusInfo, yesProb } from "../lib/market";
 
 type Filter = "live" | "resolved" | "all";
@@ -25,18 +26,30 @@ export function MarketsPage() {
       {error && <p className="notice warn">Could not load markets. Check the RPC connection.</p>}
       {!isLoading && !error && list.length === 0 && <div className="card empty"><p>No {filter === "all" ? "" : filter} markets yet.</p><Link className="btn primary" to="/create">Create the first one</Link></div>}
       <div className="grid">
-        {list.map((m) => {
-          const st = statusInfo(m, now);
-          return (
-            <Link key={m.address.toBase58()} to={`/market/${m.address.toBase58()}`} className="card market-card">
-              <div className="card-top"><span className={`pill ${st.tone}`}>{st.label}</span><span className="muted small">{m.status === "open" ? countdown(Number(m.expiryTs) - now) : ""}</span></div>
-              <h3>{marketTitle(m)}</h3>
-              <OddsBar yes={yesProb(m)} />
-              <div className="meta"><span>Threshold {usd(m.threshold)}</span><span>Pool {formatUnits(m.totalMinted, 0)}</span></div>
-            </Link>
-          );
-        })}
+        {list.map((m) => <MarketCard key={m.address.toBase58()} m={m} now={now} />)}
       </div>
     </main>
+  );
+}
+
+function MarketCard({ m, now }: { m: MarketAccount; now: number }) {
+  const st = statusInfo(m, now);
+  const label = useTokenLabel(m.tokenRef.toBase58()).data;
+  const quote = useLiveQuote(m, m.status === "open", 15_000).data;
+  const ratio = quote ? Number((quote.marketCap * 10_000n) / m.threshold) / 10_000 : null;
+  return (
+    <Link to={`/market/${m.address.toBase58()}`} className="card market-card">
+      <div className="card-top"><span className={`pill ${st.tone}`}>{st.label}</span><span className="muted small">{m.status === "open" ? countdown(Number(m.expiryTs) - now) : ""}</span></div>
+      <h3>{marketTitle(m, label?.symbol)}</h3>
+      <OddsBar yes={yesProb(m)} />
+      {quote && ratio !== null && (
+        <div className="card-live">
+          <span className={m.status === "open" ? "live-dot on" : "live-dot"} aria-hidden />
+          <span>{usd(quote.marketCap)}</span>
+          <span className={ratio >= 1 ? "ok" : "muted"}>{pct(ratio)} of threshold</span>
+        </div>
+      )}
+      <div className="meta"><span>Threshold {usd(m.threshold)}</span><span>Pool {formatUnits(m.totalMinted, 0)}</span></div>
+    </Link>
   );
 }

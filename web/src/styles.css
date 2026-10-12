@@ -82,3 +82,33 @@ input { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid 
 :focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 
 .wordmark { font-weight: 600; letter-spacing: -.01em; } .wordmark b { color: var(--brand); font-weight: 800; }
+
+.banner.real { background: #4a0f16; color: #ffb3bb; font-weight: 600; }
+.notice.danger { background: #4a0f16; color: #ffb3bb; }
+.netselect select { height: 38px; border-radius: 10px; border: 1px solid var(--line); background: var(--card); color: var(--text); font-weight: 700; padding: 0 10px; font-size: 14px; cursor: pointer; }
+.netselect.real select { border-color: #ff5d6e; color: #ff8d99; }
+.sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* live data */
+.chart-wrap { position: relative; }
+.chart-pulse { fill: var(--brand); opacity: .25; animation: pulse 1.8s ease-out infinite; transform-box: fill-box; transform-origin: center; }
+@keyframes pulse { 0% { transform: scale(.5); opacity: .5; } 100% { transform: scale(1.8); opacity: 0; } }
+.chart-dot.up { fill: var(--yes); stroke: var(--card); stroke-width: 2; } .chart-dot.down { fill: var(--brand); stroke: var(--card); stroke-width: 2; }
+.chart-cross { stroke: var(--muted); stroke-dasharray: 3 3; opacity: .6; } .chart-hover-dot { fill: var(--text); stroke: var(--card); stroke-width: 2; }
+.chart-tip { position: absolute; top: 6px; transform: translateX(-50%); background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 4px 9px; font-size: 12px; pointer-events: none; display: flex; flex-direction: column; align-items: center; white-space: nowrap; }
+.chart-tip span { color: var(--muted); font-size: 11px; }
+.chart { touch-action: pan-y; }
+
+.live-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--muted); display: inline-block; flex: none; }
+.live-dot.on { background: var(--yes); box-shadow: 0 0 0 0 rgba(18,163,107,.6); animation: ping 1.6s infinite; }
+@keyframes ping { 70% { box-shadow: 0 0 0 8px rgba(18,163,107,0); } 100% { box-shadow: 0 0 0 0 rgba(18,163,107,0); } }
+.livestats { background: var(--bg); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; margin-bottom: 10px; }
+.ls-main { display: flex; align-items: center; gap: 12px; } .ls-main > div:nth-child(2) { flex: 1; }
+.ls-value { font-size: 26px; letter-spacing: -.02em; } .ls-ratio { font-weight: 800; font-size: 18px; color: var(--muted); text-align: right; } .ls-ratio small { display: block; font-weight: 500; font-size: 11px; } .ls-ratio.ok { color: var(--yes); }
+.ls-bar { height: 6px; background: var(--line); border-radius: 99px; overflow: hidden; margin: 10px 0 6px; } .ls-fill { height: 100%; background: var(--brand); border-radius: 99px; transition: width .5s; } .ls-fill.up { background: var(--yes); }
+.ls-foot { display: flex; justify-content: space-between; }
+.card-live { display: flex; align-items: center; gap: 8px; margin-top: 10px; font-weight: 700; font-size: 14px; } .card-live span:last-child { margin-left: auto; font-weight: 600; font-size: 12.5px; }
+
+.chart-toggle { position: absolute; top: 2px; right: 2px; z-index: 2; display: flex; background: var(--bg); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.chart-toggle button { border: 0; background: transparent; color: var(--muted); padding: 4px 10px; font-size: 12px; font-weight: 700; cursor: pointer; }
+.chart-toggle button.on { background: var(--card); color: var(--text); }

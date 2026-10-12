@@ -11,6 +11,9 @@ import { App } from "./App";
 import { ToastProvider } from "./components/Toasts";
 import { config } from "./config";
 
+// dev-only: stripped from production builds (import.meta.env.DEV is statically false there)
+if (import.meta.env.DEV) void import("./devWallet").then((m) => m.registerDevWallet());
+
 const qc = new QueryClient({ defaultOptions: { queries: { staleTime: 2_000, retry: 1, refetchOnWindowFocus: true } } });
 
 createRoot(document.getElementById("root")!).render(
